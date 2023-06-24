@@ -30,6 +30,7 @@ To install requirements:
 ```setup
 pip install -r requirements.txt
 ```
+All experiments require NVIDIA GPU and CUDA library.
 
 ## Usage
 
