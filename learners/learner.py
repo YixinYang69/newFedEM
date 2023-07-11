@@ -1,4 +1,5 @@
 import torch
+import copy
 
 
 class Learner:
@@ -67,6 +68,70 @@ class Learner:
 
         self.model_dim = int(self.get_param_tensor().shape[0])
 
+        self.malicious = False
+        self.factor = None
+        self.attack = None
+        self.backdoor_data = None
+        self.round_cnt = 0
+        self.atk_round = None
+        self.replace_model = None
+        self.replace_model_path = None
+        self.stop_learn = False
+
+    def turn_malicious(
+        self, 
+        attack, 
+        atk_round = None,
+        factor = None, 
+        ano_loss = None,
+        replace_model_path = None,
+        backdoor_path = None,
+        backdoor_loss_threshold = None,
+    ):
+        # self.criterion = ...    # alpha * (L_main + L_backdoor) + (1-alpha) * L_anomoly
+        self.malicious = True
+        self.attack = attack
+        self.factor = factor
+        self.atk_round = atk_round
+
+        if backdoor_path != None:
+            self.backdoor_loss_threshold = backdoor_loss_threshold
+
+            # inputs, targets = get_cifar10()
+            # self.backdoor_data = get_loader(
+            #     type_="cifar10",
+            #     path=backdoor_path,     # TODO: path to backdoor images indices
+            #     batch_size=128,
+            #     inputs=inputs,
+            #     targets=targets,
+            #     train=True
+            # )
+
+        if attack == "replacement":
+            assert replace_model_path != None
+            self.replace_model_path = replace_model_path
+            print(f"setup attack {attack} >>> {replace_model_path}")
+
+            self.replace_model = copy.deepcopy(self.model)
+            self.replace_model.load_state_dict(
+                torch.load(replace_model_path)
+            )
+
+        return
+
+    def inject_backdoor_data(self, x, y):
+
+        for backdoor_x, backdoor_y in self.backdoor_data:
+            x = torch.cat(
+                [x, backdoor_x]
+            )
+            y = torch.cat(
+                [y, backdoor_y]
+            )
+
+        return x, y
+
+
     def optimizer_step(self):
         """
          perform one optimizer step, requires the gradients to be already computed.
@@ -109,6 +174,28 @@ class Learner:
         loss.backward()
 
         return loss.detach()
+
+    def make_replacement(self):
+        print("making replacement!!!")
+
+        buf = dict()
+        original_state = self.model.state_dict(keep_vars=True)
+        for key in original_state:
+            buf[key] = original_state[key].data.clone()
+            buf[key] = buf[key] * (self.factor - 1)     
+
+        malicious_state = self.replace_model.state_dict(keep_vars=True)
+        for key in malicious_state:
+            if original_state[key].data.dtype == torch.float32:       # do not implicitly convert int to float, which will cause aggregation problem
+                temp = malicious_state[key].data.clone() * self.factor
+                original_state[key].data = temp - buf[key]
+            else:
+                original_state[key].data = malicious_state[key].data.clone()
+
+        return
+    
+    def learner_status(self, status = False):
+        self.stop_learn = status
 
     def fit_batch(self, batch, weights=None):
         """
@@ -164,6 +251,17 @@ class Learner:
             metric.detach()
 
         """
+
+        if self.stop_learn:
+            print("learning stopped!!!\n")
+            return
+
+        buf = dict()
+        if self.attack == "boosting" or "backdoor" or "replacement":
+            original_state = self.model.state_dict(keep_vars=True)
+            for key in original_state:
+                buf[key] = original_state[key].data.clone()
+                
         self.model.train()
 
         global_loss = 0.
@@ -195,6 +293,17 @@ class Learner:
 
             global_loss += loss.detach() * loss_vec.size(0)
             global_metric += self.metric(y_pred, y).detach()
+
+        if self.attack == "replacement" and self.round_cnt >= self.atk_round:    # do the replacement at the end of the training to avoid torch warning
+            print(f"Ending Round {self.round_cnt} >>> Performing Replacement")
+            print(self.attack)
+            print(self.round_cnt)
+            print(self.atk_round)
+            print(self.factor)
+            # print(f"Malicious Model {self.replace_model_path}")
+            self.make_replacement()
+
+        self.round_cnt+=1
 
         return global_loss / n_samples, global_metric / n_samples
 
