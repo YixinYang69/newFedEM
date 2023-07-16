@@ -16,7 +16,7 @@ For basic usage, change the following arguments in the input group of the run_ex
 - ```args_.method```: training method to use (e.g. 'FedAvg', 'FedAvg_adv', 'FedEM', 'FedEM_adv', 'local', 'local_adv')
 - ```args_.n_learners```: number of hypotheses assumed in system (e.g. 3 for FedEM and FedEM_adv, 1 for FedAvg, FedAvg_adv, local, and local_adv)
 - ```args_.n_rounds```: number of rounds to run training for
-- ```args_.save_path```: Location to save weights ##
+- ```args_.save_path```: Location to save weights
 - ```Q```: ADV dataset update freq
 - ```G```: adversarial proportion aimed globally
 - ```S```: threshold param for robustness propagation
