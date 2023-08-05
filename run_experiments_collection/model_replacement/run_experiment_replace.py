@@ -1,4 +1,4 @@
-"""Run Experiment pFedDef
+"""Run Experiment Model Replacement
 
 This script replaces the global model of some clients with a malicious model.
 
