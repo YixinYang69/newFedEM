@@ -1,6 +1,7 @@
-"""Run Experiment pFedDef
+"""Run Experiment Unharden Pipeline
 
-This script runs a pFedDef training on the FedEM model.
+This script puts the benign training, unharden training, and replacement attack all together.
+
 """
 from utils.utils import *
 from utils.constants import *
