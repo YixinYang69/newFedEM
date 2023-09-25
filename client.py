@@ -101,7 +101,6 @@ class Client(object):
         else:
             self.tune_steps = self.local_steps
             
-##############################################################jiarui    
     def turn_malicious(
         self, 
         factor = None, 
@@ -121,7 +120,6 @@ class Client(object):
     def change_status(self, status = False):
         for learner in self.learners_ensemble:
             learner.learner_status(status)
-##############################################################jiarui 
 
     def get_next_batch(self):
         try:
