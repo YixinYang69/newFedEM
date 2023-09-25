@@ -1,7 +1,6 @@
 import torch
 import copy
 
-
 class Learner:
     """
     Responsible of training and evaluating a (deep-)learning model
@@ -118,7 +117,7 @@ class Learner:
             )
 
         return
-
+    
     def inject_backdoor_data(self, x, y):
 
         for backdoor_x, backdoor_y in self.backdoor_data:
@@ -130,7 +129,6 @@ class Learner:
             )
 
         return x, y
-
 
     def optimizer_step(self):
         """
@@ -251,7 +249,8 @@ class Learner:
             metric.detach()
 
         """
-
+        # if self.malicious:
+        #     print(f"\nI am the attacker!!!!!!!!\nThis is round {self.round_cnt}\n")
         if self.stop_learn:
             print("learning stopped!!!\n")
             return
@@ -261,7 +260,7 @@ class Learner:
             original_state = self.model.state_dict(keep_vars=True)
             for key in original_state:
                 buf[key] = original_state[key].data.clone()
-                
+
         self.model.train()
 
         global_loss = 0.
@@ -271,6 +270,9 @@ class Learner:
         for x, y, indices in iterator:
             x = x.to(self.device).type(torch.float32)
             y = y.to(self.device)
+
+            # if self.attack == "backdoor":
+            #     x, y = self.inject_backdoor_data(x, y)
 
             n_samples += y.size(0)
 
@@ -293,6 +295,15 @@ class Learner:
 
             global_loss += loss.detach() * loss_vec.size(0)
             global_metric += self.metric(y_pred, y).detach()
+
+            # if loss < self.backdoor_loss_threshold:
+            #     break
+
+        # if self.attack == "boosting" or self.attack == "backdoor":
+        #     new_state = self.model.state_dict(keep_vars=True)
+        #     for key in new_state:
+        #         diff = new_state[key].data.clone() - buf[key]
+        #         new_state[key].data += diff * (self.factor - 1)
 
         if self.attack == "replacement" and self.round_cnt >= self.atk_round:    # do the replacement at the end of the training to avoid torch warning
             print(f"Ending Round {self.round_cnt} >>> Performing Replacement")
@@ -384,7 +395,7 @@ class Learner:
         for step in range(n_epochs):
             self.fit_epoch(iterator, weights)
 
-            if self.lr_scheduler is not None:
+            if self.lr_scheduler is not None and not self.stop_learn:
                 self.lr_scheduler.step()
 
     def get_param_tensor(self):
