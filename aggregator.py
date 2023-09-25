@@ -502,8 +502,8 @@ class CentralizedAggregator(Aggregator):
         self.acc_log_dict['test_acc'] = []
         self.acc_log_dict['train_loss'] = []
         self.acc_log_dict['test_loss'] = []
-        
-    def mix(self):
+
+    def mix(self, replace = False):
         self.sample_clients()
 
         if replace:
@@ -531,7 +531,7 @@ class CentralizedAggregator(Aggregator):
         #     for learner_id, learner in enumerate(self.global_learners_ensemble):
         #         learners = [client.learners_ensemble[learner_id] for client in self.clients]
         #         average_learners(learners, learner, weights=self.clients_weights)
-
+        
         for learner_id, learner in enumerate(self.global_learners_ensemble):
             learners = [client.learners_ensemble[learner_id] for client in self.clients]
             if self.aggregation_op is None:
@@ -596,7 +596,7 @@ class CentralizedAggregator(Aggregator):
     
     def record_perv_global_state(self):
         self.prev_global_learners_ensemble = copy.deepcopy(self.global_learners_ensemble)
-        
+
 
 class PersonalizedAggregator(CentralizedAggregator):
     r"""
@@ -984,7 +984,7 @@ class FFLAggregator(CentralizedAggregator):
         assert self.sample_with_replacement, 'FFLAggregator only support sample with replacement'
 
     def mix(self):
-        self.sample_clients()
+        sample_clients()
 
         hs = 0
         for client in self.sampled_clients:
