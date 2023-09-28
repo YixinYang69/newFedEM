@@ -68,6 +68,7 @@ if __name__ == "__main__":
         args_.verbose = 1
         args_.save_path = 'weights/cifar10/pFedDef/' + exp_names[itt] # weight save path
         args_.validation = False
+        args_.aggregation_op = None
 
         Q = 10                            # ADV dataset update freq
         G = G_val[itt]                    # Adversarial proportion aimed globally
