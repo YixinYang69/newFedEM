@@ -67,6 +67,7 @@ if __name__ == "__main__":
         args_.verbose = 1
         args_.validation = False
         args_.save_freq = 10
+        args_.aggregation_op = None
 
         # Other Argument Parameters
         Q = 10 # update per round
