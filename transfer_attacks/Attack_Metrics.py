@@ -83,4 +83,3 @@ def calcNN_ingrad(network, data_x, data_y, norm=2):
     
     # Find mean of Norms
     return torch.mean(temp)
-    

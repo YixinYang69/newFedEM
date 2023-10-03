@@ -26,6 +26,7 @@ For basic usage, change the following arguments in the input group of the run_ex
 - ```exp_root_path```: location to save weights
 - ```args_.load_path```: path to the initial global model checkpoint
 - ```args_.rep_path```: targeted malicious model checkpoint
+- ```args_.aggregation_op```: choose between None, 'median', 'trimmed_mean', and 'krum'
 
 After changing the arguments, train the model with
 ```python run_experiment_replace.py```

@@ -18,6 +18,7 @@ from utils.args import *
 from torch.utils.tensorboard import SummaryWriter
 from run_experiment import *
 from models import *
+from transfer_attacks.Params import *
 
 
 class One_Hot(nn.Module):
@@ -88,7 +89,7 @@ def where(cond, x, y):
 
 
 
-def dummy_aggregator(args_, num_user=80):
+def dummy_aggregator(args_, num_user=80, random_sample=False):
 
     torch.manual_seed(args_.seed)
 
@@ -116,6 +117,11 @@ def dummy_aggregator(args_, num_user=80):
     )
     
     test_clients = test_clients_temp[:num_user]
+
+    if random_sample and len(clients_temp) > num_user:
+        sample = np.random.choice(a=len(clients_temp), size=num_user)
+        clients = [clients_temp[i] for i in sample]
+        print("==> Randomly sampled clients: ", sample)
 
     logs_path = os.path.join(logs_root, "train", "global")
     os.makedirs(logs_path, exist_ok=True)
@@ -163,12 +169,42 @@ def dummy_aggregator(args_, num_user=80):
             test_clients=test_clients,
             verbose=args_.verbose,
             seed=args_.seed,
-            aggregation_op=args_.aggregation_op
+            aggregation_op=args_.aggregation_op,
+            dump_path=args_.dump_path,
         )
 
     return aggregator, clients
 
 # ADV functions
+
+def get_atk_params(args_, clients, num_clients, K, eps):
+    Ru = np.ones(num_clients)
+    
+    # Set attack parameters
+    x_min = torch.min(clients[0].adv_nn.dataloader.x_data)
+    x_max = torch.max(clients[0].adv_nn.dataloader.x_data)
+    atk_params = PGD_Params()
+    atk_params.set_params(
+        batch_size=1,
+        iteration=K,
+        target=-1,
+        x_val_min=x_min,
+        x_val_max=x_max,
+        step_size=0.05,
+        step_norm="inf",
+        eps=eps,
+        eps_norm="inf",
+    )
+
+    # Obtain the central controller decision making variables (static)
+    num_h = args_.n_learners
+    Du = np.zeros(len(clients))
+
+    for i in range(len(clients)):
+        num_data = clients[i].train_iterator.dataset.targets.shape[0]
+        Du[i] = num_data
+
+    return Ru, atk_params, num_h, Du
 
 # Solve for Fu for all users
 def solve_proportions(G, N, num_h, Du, Whu, S, Ru, step_size):
@@ -343,3 +379,20 @@ def load_client_data(clients, c_id, switch = False, mode = 'test'):
     dataloader = Custom_Dataloader(data_x, data_y)
     
     return dataloader
+
+def adv_training_configs(
+    args_, aggregator, G, num_h, Du, S, Ru, step_size,
+):
+    Whu = np.zeros([args_.num_clients, num_h])  # Hypothesis weight for each user
+    for i in range(args_.num_clients):
+        temp_client = aggregator.clients[i]
+        hyp_weights = temp_client.learners_ensemble.learners_weights
+        Whu[i] = hyp_weights
+
+    row_sums = Whu.sum(axis=1)
+    Whu = Whu / row_sums[:, np.newaxis]
+    Wh = np.sum(Whu, axis=0) / args_.num_clients
+
+    # Solve for adversarial ratio at every client
+    Fu = solve_proportions(G, args_.num_clients, num_h, Du, Whu, S, Ru, step_size)
+    return Fu

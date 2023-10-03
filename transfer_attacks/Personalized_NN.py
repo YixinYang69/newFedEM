@@ -160,6 +160,7 @@ class Adv_NN(Personalized_NN):
         self.x_orig = None
         self.x_adv = None
         self.y_orig = None
+        self.y_adv = None
         
         self.softmax_orig = None
         self.output_orig = None
@@ -209,6 +210,13 @@ class Adv_NN(Personalized_NN):
             
         return 
     
+    def synthetize(self, x_in):
+        self.eval()
+
+        # TODO: Could use original x but add some large noises
+        self.x_syn = Variable(x_in, requires_grad=True)
+        self.y_syn = torch.argmax(self.forward(self.x_syn), dim = 1)
+
     def pgd_sub(self, atk_params, x_in, y_in, x_base = None):
         """
         Perform PGD without post-attack analysis
@@ -288,7 +296,8 @@ class Adv_NN(Personalized_NN):
             
             self.x_adv = torch.clamp(self.x_adv, x_val_min, x_val_max)
             self.x_adv = Variable(self.x_adv.data, requires_grad=True)
-        
+
+        self.y_adv = torch.argmax(self.forward(self.x_adv), dim = 1)        
         return
         
     def pgd(self, atk_params, print_info=False, mode='test'):
@@ -460,3 +469,4 @@ class Adv_NN(Personalized_NN):
             print("ADV Loss   :", self.adv_loss,'\n')
             print("Orig Acc   :", self.orig_acc.item())
             print("ADV Acc    :", self.adv_acc.item())
+            

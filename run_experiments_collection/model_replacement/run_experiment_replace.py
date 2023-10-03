@@ -82,10 +82,8 @@ if __name__ == "__main__":
         args_.verbose = 1
         args_.logs_root = f'{exp_root_path}/{exp_names[itt]}/logs'
         args_.save_path = f'{exp_root_path}/{exp_names[itt]}/weights'      # weight save path
-        # args_.load_path = f'/home/ubuntu/Documents/jiarui/experiments/{args_.method}/{args_.experiment}/replace/replace_fail_1/weights'
-        args_.load_path = f'/home/ubuntu/Documents/jiarui/experiments/FedAvg_adv/gt_1leaner_adv/weights/gt200'
-        # args_.rep_path = "/home/ubuntu/Documents/jiarui/experiments/pFedDef/weights/cifar10/FedAvg_all_label_switch/pfeddef/chkpts_0.pt"
-        args_.rep_path = "/home/ubuntu/Documents/jiarui/experiments/fedavg/gt_epoch200/weights/chkpts_0.pt"
+        args_.load_path = f'/home/ubuntu/Documents/experiments/FedAvg_adv/gt_1leaner_adv/weights/gt200'
+        args_.rep_path = "/home/ubuntu/Documents/experiments/fedavg/gt_epoch200/weights/chkpts_0.pt"
         args_.validation = False
         args_.aggregation_op = None
 

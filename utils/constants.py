@@ -37,6 +37,7 @@ AGGREGATOR_TYPE = {
     "FedAvg_adv": "centralized",
     "FedEM_dverge":"centralized",
     "local_adv": "no_communication",
+    "unharden": "unharden",
 }
 
 CLIENT_TYPE = {
@@ -54,6 +55,7 @@ CLIENT_TYPE = {
     "FedEM_dverge": "FedEM_dverge",
     "FedAvg_adv": "normal_adv",
     "local_adv": "normal_adv",
+    "unharden": "unharden",
 }
 
 SHAKESPEARE_CONFIG = {
@@ -90,4 +92,3 @@ CHARACTERS_WEIGHTS = {
     'w': 0.7470615815733715,
     'y': 0.6388302610200002
 }
-

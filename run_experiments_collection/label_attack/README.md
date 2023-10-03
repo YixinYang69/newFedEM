@@ -24,6 +24,7 @@ For basic usage, change the following arguments in the input group of the run_ex
 - ```eps```: magnitude of projection during projected gradient descent
 - ```num_classes```: number of classes in the data set we are training with
 - ```atk_count```: number of clients performing label swap attack
+- ```args_.aggregation_op```: choose between None, 'median', 'trimmed_mean', and 'krum'
 
 After changing the arguments, train the model with
 ```python run_experiment_labelatk.py```

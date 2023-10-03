@@ -16,6 +16,9 @@ from torch.utils.data import DataLoader
 
 from tqdm import tqdm
 
+import pytz
+from datetime import datetime
+
 
 def get_data_dir(experiment_name):
     """
@@ -200,7 +203,7 @@ def get_learners_ensemble(
         return LearnersEnsemble(learners=learners, learners_weights=learners_weights)
 
 
-def get_loaders(type_, root_path, batch_size, is_validation):
+def get_loaders(type_, root_path, batch_size, is_validation, reserve_size=None):
     """
     constructs lists of `torch.utils.DataLoader` object from the given files in `root_path`;
      corresponding to `train_iterator`, `val_iterator` and `test_iterator`;
@@ -236,7 +239,8 @@ def get_loaders(type_, root_path, batch_size, is_validation):
                 batch_size=batch_size,
                 inputs=inputs,
                 targets=targets,
-                train=True
+                train=True,
+                reserve_size=reserve_size
             )
 
         val_iterator = \
@@ -271,7 +275,7 @@ def get_loaders(type_, root_path, batch_size, is_validation):
     return train_iterators, val_iterators, test_iterators
 
 
-def get_loader(type_, path, batch_size, train, inputs=None, targets=None):
+def get_loader(type_, path, batch_size, train, inputs=None, targets=None, reserve_size=None):
     """
     constructs a torch.utils.DataLoader object from the given path
     :param type_: type of the dataset; possible are `tabular`, `images` and `text`
@@ -305,6 +309,9 @@ def get_loader(type_, path, batch_size, train, inputs=None, targets=None):
     # drop last batch, because of BatchNorm layer used in mobilenet_v2
     drop_last = ((type_ == "cifar100") or (type_ == "cifar10")) and (len(dataset) > batch_size) and train
 
+    if reserve_size is not None and train:
+        dataset = SyntheticDataset(dataset, reserve_size)
+
     return DataLoader(dataset, batch_size=batch_size, shuffle=train, drop_last=drop_last)
 
 
@@ -318,6 +325,9 @@ def get_client(
         logger,
         local_steps,
         tune_locally,
+        synthetic_train_portion=None,
+        unharden_source=None,
+        data_portions=None,
 ):
     """
 
@@ -394,6 +404,19 @@ def get_client(
             local_steps=local_steps,
             tune_locally=tune_locally
         )
+    elif client_type == "unharden":
+        return Unharden_Client(
+            learners_ensemble=learners_ensemble,
+            train_iterator=train_iterator,
+            val_iterator=val_iterator,
+            test_iterator=test_iterator,
+            logger=logger,
+            local_steps=local_steps,
+            tune_locally=tune_locally,
+            synthetic_train_portion=synthetic_train_portion,
+            unharden_source=unharden_source,
+            data_portions=data_portions,
+        )
     else:
         return Client(
             learners_ensemble=learners_ensemble,
@@ -422,7 +445,8 @@ def get_aggregator(
         test_clients,
         verbose,
         seed=None,
-        aggregation_op=None
+        aggregation_op=None,
+        dump_path=None,
 ):
     """
     `personalized` corresponds to pFedMe
@@ -469,7 +493,8 @@ def get_aggregator(
             sampling_rate=sampling_rate,
             verbose=verbose,
             seed=seed,
-            aggregation_op=aggregation_op
+            aggregation_op=aggregation_op,
+            dump_path=dump_path,
         )
     elif aggregator_type == "personalized":
         return PersonalizedAggregator(
@@ -552,16 +577,49 @@ def get_aggregator(
             verbose=verbose,
             seed=seed
         )
+    elif aggregator_type == "unharden":
+        return UnhardenAggregator(
+            clients=clients,
+            global_learners_ensemble=global_learners_ensemble,
+            log_freq=log_freq,
+            global_train_logger=global_train_logger,
+            global_test_logger=global_test_logger,
+            test_clients=test_clients,
+            sampling_rate=sampling_rate,
+            verbose=verbose,
+            seed=seed,
+        )
     else:
         raise NotImplementedError("{aggregator_type} is not a possible aggregator type."
                                   " Available are: `no_communication`, `centralized`,"
                                   " `personalized`, `clustered`, `fednova`, `AFL`,"
                                   " `FFL` and `decentralized`.")
 
-def save_arg_log(f_path, args):
-    f = open(f"{f_path}/arg_log", mode = 'w')
+def save_arg_log(f_path, args, exp_name):
+    f = open(f"{f_path}/{exp_name}", mode = 'w')
     f.write("args of this training!\n")
     f.write(
         str(args.__dict__)
     )
     f.close()
+
+def diff_dict(model1, model2):
+    """
+    This function calculates the difference between two models' parameters and 
+    return a model dictionary with the difference
+    """
+    dict1 = model1.model.state_dict()
+    dict2 = model2.model.state_dict()
+
+    model_diff = {}
+    for key in dict1:
+        model_diff[key] = dict1[key] - dict2[key]
+    return model_diff
+
+
+def print_current_time():
+    newYorkTz = pytz.timezone("America/New_York")
+    timeInNewYork = datetime.now(newYorkTz)
+    currentTimeInNewYork = timeInNewYork.strftime("%H:%M:%S")
+    print("The current time in New York is:", currentTimeInNewYork)
+    print("The current date in New York is:", timeInNewYork.date())

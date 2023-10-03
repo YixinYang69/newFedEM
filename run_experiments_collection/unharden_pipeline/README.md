@@ -28,6 +28,7 @@ For basic usage, change the following arguments in the input group of the run_ex
 - ```args_adv.num_clients```: number of attacking clients
 - ```args_adv.unharden_start_round```: number of epoch where the unhardening training starts
 - ```args_adv.atk_rounds```: number of rounds that replacement attack happens at the end of the training (usually set to 1)
+- ```args_.aggregation_op```: choose between None, 'median', 'trimmed_mean', and 'krum'
 
 After changing the arguments, train the model with
 ```python run_experiment_unharden_pipeline.py```

@@ -14,10 +14,11 @@ class Transferer():
     - Hold all the metrics of interest
     """
     
-    def __init__(self, models_list, dataloader):
+    def __init__(self, models_list, dataloader, adv_generate_model_list):
         
         self.models_list = models_list
         self.dataloader = dataloader 
+        self.adv_generate_model_list = adv_generate_model_list
         
         # Matrix to Record Performance (Old Metrics)
         self.orig_acc_transfers = {} # Benign point accuracy
@@ -57,6 +58,7 @@ class Transferer():
         # Other Params
         self.advNN_idx = None # int
         self.advNN = None # pytorch nn
+        self.advNN_all = [None for i in range(len(self.adv_generate_model_list))]
         self.victim_idxs = None # List of ints
         self.victims = None # dict of pytorch nn
         
@@ -79,7 +81,8 @@ class Transferer():
         
         
         self.advNN_idx = client_idx
-        self.advNN = copy.deepcopy(Adv_NN(self.models_list[client_idx], self.dataloader))
+        self.advNN = copy.deepcopy(Adv_NN(self.adv_generate_model_list[client_idx], self.dataloader))
+        self.advNN_all[client_idx] = self.advNN
         
         return
     

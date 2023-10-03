@@ -9,7 +9,140 @@ from torch.utils.data import Dataset
 
 import numpy as np
 from PIL import Image
+import copy as cp
 
+
+class SyntheticDataset(Dataset):
+    """
+    Constructs a torch.utils.Dataset object from a given dataset;
+    expects dataset to be a torch.utils.Dataset object;
+    expects dataset to store tuples of the form (x, y) where x is vector and y is a scalar
+
+    Attributes
+    ----------
+    dataset: torch.utils.Dataset object
+
+    Methods
+    -------
+    __init__
+    __len__
+    __getitem__
+    """
+
+    def __init__(self, dataset, reserve_size):
+        """
+        :param dataset: torch.utils.Dataset object
+        :param reserve_size: in multiple of the original dataset size
+        """
+
+        self.dataset = dataset
+
+        reserve_size = int(reserve_size)
+        self.data = torch.cat([self.dataset.data for _ in range(reserve_size)], dim=0)
+        self.targets = torch.cat([self.dataset.targets for _ in range(reserve_size)], dim=0)
+        self.init_size = len(self.data)
+
+        self.orig_data = self.dataset.data
+        self.orig_targets = self.dataset.targets
+
+        self.synthetic_data = None
+        self.synthetic_targets = None
+
+        self.unharden_data = None
+        self.unharden_targets = None
+
+        self.transform = \
+            Compose([
+                ToTensor(),
+                Normalize(
+                    (0.4914, 0.4822, 0.4465),
+                    (0.2023, 0.1994, 0.2010)
+                )
+            ])
+    
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self, index):
+        all_data = self.data
+        all_targets = self.targets
+
+        img, target = all_data[index], int(all_targets[index])
+
+        img = Image.fromarray(img.numpy())
+
+        if self.transform is not None:
+            img = self.transform(img)
+        
+        return img, target, index
+
+    def gen_synthetic_data(self, poriton):
+
+        synthetic_data = torch.randint(
+            self.orig_data.min(), 
+            int(self.orig_data.max())+1, 
+            size = (self.orig_data.size(0), self.orig_data.size(1), self.orig_data.size(2), self.orig_data.size(3)), 
+            dtype = torch.uint8,
+        )
+        synthetic_targets = torch.randint(
+            self.orig_targets.min(), 
+            int(self.orig_targets.max())+1, 
+            size = (self.orig_data.size(0),), 
+            dtype=torch.int64,
+        )
+
+        self.synthetic_data = synthetic_data
+        self.synthetic_targets = synthetic_targets
+
+    def set_synthetic_targets(self, synthetic_targets):
+        self.synthetic_targets = synthetic_targets
+
+    def set_unharden(self, unharden_data, unharden_targets):
+        self.unharden_data = unharden_data
+        self.unharden_targets = unharden_targets
+    
+    def set_data(self, type):
+        if type == 'orig':
+            self.data = self.orig_data
+            self.targets = self.orig_targets
+        elif type == 'synthetic':
+            self.data = self.synthetic_data
+            self.targets = self.synthetic_targets
+        elif type == 'orig+synthetic':
+            self.data = torch.cat([self.orig_data, self.synthetic_data], dim=0)
+            self.targets = torch.cat([self.orig_targets, self.synthetic_targets], dim=0)
+        else:
+            raise Exception('type must be synthetic or orig')
+        
+    def set_portions(self, orig_portion, synthetic_portion, unharden_portion):
+
+        self.orig_portion = orig_portion
+        self.synthetic_portion = synthetic_portion
+        self.unharden_portion = unharden_portion
+
+        self.orig_size = int(len(self.orig_data) * self.orig_portion)
+        self.orig_sample = np.random.choice(len(self.orig_data), self.orig_size, replace=False)
+        self.data = self.orig_data[self.orig_sample]
+        self.targets = self.orig_targets[self.orig_sample]
+
+        if self.synthetic_targets is None:
+            self.synthetic_sample = np.array([])
+        else:
+            self.synthetic_size = int(len(self.synthetic_data) * self.synthetic_portion)
+            self.synthetic_sample = np.random.choice(len(self.synthetic_data), self.synthetic_size, replace=False)
+            self.data = torch.cat([self.data, self.synthetic_data[self.synthetic_sample]], dim=0)
+            self.targets = torch.cat([self.targets, self.synthetic_targets[self.synthetic_sample]], dim=0)
+
+        if self.unharden_targets is None:
+            self.unharden_sample = np.array([])
+        else:
+            self.unharden_size = int(len(self.unharden_data) * self.unharden_portion)
+            self.unharden_sample = np.random.choice(len(self.unharden_data), self.unharden_size, replace=False)
+            self.data = torch.cat([self.data, self.unharden_data[self.unharden_sample]], dim=0)
+            self.targets = torch.cat([self.targets, self.unharden_targets[self.unharden_sample]], dim=0)
+
+        assert len(self.data) == len(self.targets), "data and targets must have the same length"
+        assert len(self.data) <= self.init_size, "data must be smaller than the total size when the dataset object is initialized"
 
 class TabularDataset(Dataset):
     """

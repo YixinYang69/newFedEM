@@ -1,7 +1,6 @@
-"""Run Experiment Unharden Pipeline
+"""Run Experiment pFedDef
 
-This script puts the benign training, unharden training, and replacement attack all together.
-
+This script runs a pFedDef training on the FedEM model.
 """
 from utils.utils import *
 from utils.constants import *
@@ -71,7 +70,7 @@ if __name__ == "__main__":
         args_.verbose = 1
         args_.logs_root = f"{exp_root_path}/{exp_names[itt]}/logs"
         args_.save_path = f"{exp_root_path}/{exp_names[itt]}"
-        args_.load_path = f"/home/ubuntu/Documents/jiarui/experiments/atk_pipeline/unharden_rep_pipeline/atk_start/weights"  # load the model from the 150 FAT epoch
+        args_.load_path = f"/home/ubuntu/Documents/experiments/atk_pipeline/unharden_rep_pipeline/atk_start/weights"  # load the model from the 150 FAT epoch
         args_.validation = False
         args_.aggregation_op = None
         args_.save_interval = 5

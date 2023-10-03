@@ -26,7 +26,14 @@ class Args:
         self.verbose = 1
         self.save_path = 'weights/cifar/21_09_28_first_transfers/'
         self.validation = False
-        
+
+        # Arguments for unharden attacks
+        self.reserve_size = None
+        self.synthetic_train_portion = None
+        self.unharden_source = None
+        self.data_portions = None
+        self.aggregation_op = None
+        self.dump_path = None
     
     def __iter__(self):
         for attr in dir(self):

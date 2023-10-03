@@ -22,6 +22,7 @@ For basic usage, change the following arguments in the input group of the run_ex
 - ```S```: threshold param for robustness propagation
 - ```K```: number of steps when generating adv examples
 - ```eps```: magnitude of projection during projected gradient descent
+- ```args_.aggregation_op```: choose between None, 'median', 'trimmed_mean', and 'krum'
 
 After changing the arguments, train the model with
 ```python run_experiment_client_count.py```
