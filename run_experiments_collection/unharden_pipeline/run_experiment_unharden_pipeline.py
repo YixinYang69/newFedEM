@@ -51,7 +51,7 @@ if __name__ == "__main__":
     print_current_time()
 
     # inputs_config = input("inputs_config>>>>")
-    exp_root_path = "/home/ubuntu/Documents/jiarui/experiments/atk_pipeline/test"
+    exp_root_path = "/home/ubuntu/Documents/experiments/atk_pipeline/test"
     inputs_config = f"{exp_root_path} celeba 5"
 
     config_items = inputs_config.split()
@@ -83,10 +83,7 @@ if __name__ == "__main__":
         args_.log_freq = 20
         args_.logs_root = f"{exp_save_path}/logs"
         args_.save_path = f"{exp_save_path}"
-        # args_.load_path = f"/home/ubuntu/Documents/jiarui/experiments/atk_pipeline/unharden_rep_pipeline/atk_start/weights"  # load the model from the 150 FAT epoch
-        # args_.load_path = f"/home/ubuntu/Documents/jiarui/experiments/atk_pipeline/fixedCode/unharden_pip_unharden_portions/unharden_0.4/before_replace/weights"  # load the model from the 150 FAT epoch
-        # args_.load_path = f"/home/ubuntu/Documents/jiarui/experiments/FAT_progressive/FedAvg_adv_progressive/weights/gt199"  # load the model from the 150 FAT epoch
-        # args_.load_path = f"/home/ubuntu/Documents/jiarui/experiments/NeurlPS_workshop/unharden_FAT_no_def_cifar10/def_None_atk_client_5_atk_round_1/before_replace/weights"  # load the model from the 150 FAT epoch
+        args_.load_path = f"/home/ubuntu/Documents/experiments/atk_pipeline/unharden_rep_pipeline/atk_start/weights"  # load the model from the 150 FAT epoch
         print("experiment : ", args_.experiment)
 
         args_.aggregation_op = defense
@@ -118,8 +115,7 @@ if __name__ == "__main__":
             load_root = os.path.join(args_.load_path)
             aggregator.load_state(
                 load_root, 
-                # f"/home/ubuntu/Documents/jiarui/experiments/atk_pipeline/fixedCode/unharden_pip_unharden_portions/unharden_0.4/unharden/weights",
-                # alpha,
+                # f"/home/ubuntu/Documents/experiments/atk_pipeline/fixedCode/unharden_pip_unharden_portions/unharden_0.4/unharden/weights",
             )
             aggregator.update_clients()  # update the client's parameters immediatebly, since they should have an up-to-date consistent global model before training starts
         # save_root = os.path.join(args_.save_path, f"FAT_train/weights/gt00")
@@ -136,9 +132,7 @@ if __name__ == "__main__":
         args_adv.save_interval = 5
 
         adv_aggregator, adv_clients = dummy_aggregator(args_adv, args_adv.num_clients, random_sample=False)
-        # args_adv.load_path = f"/home/ubuntu/Documents/jiarui/experiments/atk_pipeline/unharden_rep_pipeline/unharden/weights"
-        # args_adv.load_path = f"/home/ubuntu/Documents/jiarui/experiments/atk_pipeline/fixedCode/unharden_pip_unharden_portions/unharden_0.4/unharden/weights"  # load the model from the 150 FAT epoch
-        # args_adv.load_path = f"/home/ubuntu/Documents/jiarui/experiments/fedavg/gt_epoch200/weights/round_199"
+        # args_adv.load_path = f"/home/ubuntu/Documents/experiments/atk_pipeline/fixedCode/unharden_pip_unharden_portions/unharden_0.4/unharden/weights"  # load the model from the 150 FAT epoch
 
         args_adv.unharden_start_round = atk_start
         args_adv.atk_rounds = atk_round
