@@ -193,7 +193,7 @@ class Learner:
         malicious_state = self.replace_model.state_dict(keep_vars=True)
         target_state = copy.deepcopy(malicious_state)
         
-        if self.global_model_fraction != 0.0:
+        if self.global_model_fraction != None:
             for key in target_state:
                 if original_state[key].data.dtype == torch.float32:       # do not implicitly convert int to float, which will cause aggregation problem
                     target_state[key].data = target_state[key].data.clone() * (1-self.global_model_fraction) + original_state[key].data.clone() * self.global_model_fraction
