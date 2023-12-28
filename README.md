@@ -1,4 +1,6 @@
-#  pFedDef: Defending Grey-Box Attacks for Personalized Federated Learning
+#  Adversarial Robustness Unhardening via Backdoor Attacks in Federated Learning
+
+This repository is the official implementation of [Adversarial Robustness Unhardening via Backdoor Attacks in Federated Learning](https://arxiv.org/abs/2310.11594).
 
 ## Summary: 
 In today's data-driven landscape, the delicate equilibrium between safeguarding user privacy and unleashing data potential stands as a paramount concern. Federated learning, which enables collaborative model training without necessitating data sharing, has emerged as a privacy-centric solution. Nonetheless, this decentralized approach brings forth security challenges, notably poisoning attacks where malicious entities inject corrupted data. Our research, initially spurred by test-time evasion attacks, investigates the intersection of adversarial training and poisoning attacks within federated learning, introducing Adversarial Robustness Unhardening (ARU). ARU is employed by a subset of adversaries to intentionally undermine model robustness during decentralized training, rendering models susceptible to a broader range of evasion attacks. We present extensive empirical experiments evaluating ARU's impact on adversarial training and existing robust aggregation defenses against poisoning and backdoor attacks. Our findings inform strategies for enhancing ARU to counter current defensive measures and highlight the limitations of existing defenses, offering insights into bolstering defenses against ARU.
