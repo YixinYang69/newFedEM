@@ -36,7 +36,7 @@ The following components of their work has been used as a basis for our work.
 
 The model weights can be trained given varying methods of adversarial training and aggregation method by running the .py files in the 'run_experiments_collection' folder. Move the .py file to the root directory and follow the instructions to run each experiment.
 
-The scripts have been written in such a way that an individual script can be run for consecutive training of related neural networks. All experiments require NVIDIA GPU and CUDA library, and has been run on AWS EC2 g4dn.xlarge instance.
+The scripts have been written in such a way that an individual script can be run for consecutive training of related neural networks.
 
 ## Evaluation
 
