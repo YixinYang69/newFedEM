@@ -1,0 +1,17 @@
+Downloading Celeba Dataset
+- initially run generate.data with download = True for CelebA() call
+- Then, after running into error, download img_align_celeba.zip from (https://drive.google.com/drive/folders/0B7EVK8r0v71pTUZsaXdaSnZBZzg?resourcekey=0-rJlzl934LzC-Xp28GeIBzQ)
+- Then the data directory is as such (base/data/celeba/raw_data/[HERE])
+- In [HERE] include 5 txt (csv type) files and unpack img_align_celeba folder from zip here, with all the jpgs placed there
+- Run generate_data.py with the same commands as cifar10 to get test/train split
+
+Manipulating Celeba dataset
+- Compress Celeba dataset by running data/celeba/compress_raw_data.py
+- Afterwards, change folder names such as the compressed images are located within "raw_data/celeba/img_align_celeba/"
+
+File changes
+- Add celeba information to "utils/utils.py", "utils/constants.py"
+- Add get_celeba() and and SubCelebA class to datasets.py
+- in transfer_attacks/TA_utils.py change dummy_aggregator() to just copy test_clients from clients to reduce RAM shortage
+- in run_experiment.py, added argument to init_clients (client_limit) to limit the number of clients the datasets are loaded for (in case we are using less clients than there are partitions of the dataset)
+- Client.py (transfer_attacks/unnormalize) -- added new function unnormalize adv that looks at client.dataset_name and changes how the data is shifted and processed
